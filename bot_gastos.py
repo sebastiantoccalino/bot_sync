@@ -9,6 +9,8 @@ from google.oauth2.service_account import Credentials
 import datetime
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
+import os
+import json
 
 # Configuración básica de logging
 logging.basicConfig(
@@ -29,7 +31,8 @@ SCOPES = [
 ]
 
 # Inicializa el cliente de Google Sheets
-creds = Credentials.from_service_account_file('credentials.json', scopes=SCOPES)
+creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
+creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
 gc = gspread.authorize(creds)
 sh = gc.open(SHEET_NAME)
 worksheet = sh.worksheet('SYNC TG')
