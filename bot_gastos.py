@@ -18,6 +18,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
 TOKEN = '8209441831:AAHNmPFt4dZOcHTsiRJ_Ha0AYvslgADhHgs'  
 
 # --- Configuración de Google Sheets ---
