@@ -1,12 +1,10 @@
-# Bot de Telegram para registrar gastos compartidos
-# Cambiá '<TU_TOKEN_DE_BOTFATHER_AQUI>' por el token real de tu bot
-
 import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, JobQueue
 import gspread
 from google.oauth2.service_account import Credentials
 import datetime
+
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
@@ -17,7 +15,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-
 
 TOKEN = '8209441831:AAHNmPFt4dZOcHTsiRJ_Ha0AYvslgADhHgs'  
 
@@ -278,8 +275,19 @@ def main():
     app.add_handler(CommandHandler("gastos_seba", gastos_seba))
     app.add_handler(CommandHandler("gastos_vicky", gastos_vicky))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    webhook_url = os.environ.get("WEBHOOK_URL")
+    if webhook_url:
+        # Railway: usar webhook
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.environ.get("PORT", 8080)),
+            webhook_url=webhook_url
+        )
+    else:
+        # Local: usar polling
+        app.run_polling()
     print("Bot corriendo. Presioná Ctrl+C para frenar.")
-    app.run_polling()
 
 if __name__ == "__main__":
     main()
