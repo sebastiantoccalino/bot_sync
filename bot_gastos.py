@@ -4,11 +4,20 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 import gspread
 from google.oauth2.service_account import Credentials
 import datetime
-
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import json
+
+# Agrego la función para limpiar montos
+
+def limpiar_monto(monto_str):
+    # Elimina puntos de miles y deja solo el decimal
+    monto_str = monto_str.replace("$", "").replace(",", ".").strip()
+    if monto_str.count(".") > 1:
+        partes = monto_str.split('.')
+        monto_str = ''.join(partes[:-1]) + '.' + partes[-1]
+    return monto_str
 
 # Configuración básica de logging
 logging.basicConfig(
@@ -73,7 +82,8 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 except ValueError:
                     raise ValueError("La fecha debe ser 'hoy', 'ayer', YYYY-MM-DD o DD-MM (usa año actual)")
 
-        monto = float(monto_str.replace(",", "."))
+        monto_str = limpiar_monto(monto_str)
+        monto = float(monto_str)
         division = monto / 2
         try:
             worksheet.append_row([persona, fecha, monto, division, descripcion])
@@ -105,7 +115,7 @@ def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for fila in rows:
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
-        monto_str = fila[2].replace("$", "").replace(",", ".").strip()
+        monto_str = limpiar_monto(fila[2])
         try:
             if "/" in fecha_str:
                 # Soporta formato dd/mm/yyyy o d/m/yyyy
@@ -149,7 +159,7 @@ def gastos_seba(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for fila in rows:
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
-        monto_str = fila[2].replace("$", "").replace(",", ".").strip()
+        monto_str = limpiar_monto(fila[2])
         try:
             if "/" in fecha_str:
                 partes = fecha_str.split("/")
@@ -185,7 +195,7 @@ def gastos_vicky(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for fila in rows:
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
-        monto_str = fila[2].replace("$", "").replace(",", ".").strip()
+        monto_str = limpiar_monto(fila[2])
         try:
             if "/" in fecha_str:
                 partes = fecha_str.split("/")
@@ -226,7 +236,7 @@ def resumen_mes_anterior(context):
     for fila in rows:
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
-        monto_str = fila[2].replace("$", "").replace(",", ".").strip()
+        monto_str = limpiar_monto(fila[2])
         try:
             if "/" in fecha_str:
                 partes = fecha_str.split("/")
