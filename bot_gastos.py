@@ -292,7 +292,7 @@ def main():
         # Railway: usar webhook
         app.run_webhook(
             listen="0.0.0.0",
-            port=int(os.environ.get("PORT", 8080)),
+            port=443,
             webhook_url=webhook_url
         )
     else:
