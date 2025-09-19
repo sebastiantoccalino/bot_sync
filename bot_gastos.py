@@ -288,7 +288,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     app.run_polling()
-    print("Bot corriendo. Presioná Ctrl+C para frenar."))
+    print("Bot corriendo. Presioná Ctrl+C para frenar.")
 
 if __name__ == "__main__":
     main()
