@@ -287,18 +287,8 @@ def main():
     app.add_handler(CommandHandler("gastos_vicky", gastos_vicky))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    webhook_url = os.environ.get("WEBHOOK_URL")
-    if webhook_url:
-        # Railway: usar webhook
-        app.run_webhook(
-            listen="0.0.0.0",
-            port=443,
-            webhook_url=webhook_url
-        )
-    else:
-        # Local: usar polling
-        app.run_polling()
-    print("Bot corriendo. Presioná Ctrl+C para frenar.")
+    app.run_polling()
+    print("Bot corriendo. Presioná Ctrl+C para frenar."))
 
 if __name__ == "__main__":
     main()
