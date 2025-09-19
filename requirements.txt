@@ -1,4 +1,4 @@
-python-telegram-bot==20.7
+python-telegram-bot[webhooks]
 gspread==6.0.2
 google-auth==2.29.0
 APScheduler==3.10.4
