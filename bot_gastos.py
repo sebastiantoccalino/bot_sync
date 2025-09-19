@@ -38,7 +38,8 @@ SCOPES = [
 ]
 
 # Inicializa el cliente de Google Sheets
-creds_dict = json.loads(os.environ["GOOGLE_CREDS_JSON"])
+with open("credentials.json") as f:
+    creds_dict = json.load(f)
 creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
 gc = gspread.authorize(creds)
 sh = gc.open(SHEET_NAME)
