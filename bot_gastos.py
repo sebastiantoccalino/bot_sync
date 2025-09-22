@@ -25,8 +25,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-TOKEN = '8209441831:AAHNmPFt4dZOcHTsiRJ_Ha0AYvslgADhHgs'  
-
+TOKEN = os.environ["TOKEN"]
 # --- Configuración de Google Sheets ---
 # Nombre exacto de tu hoja de cálculo (cambiá esto si tu sheet tiene otro nombre)
 SHEET_NAME = 'Gastos'
