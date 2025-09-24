@@ -64,6 +64,10 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return update.message.reply_text("Puto tu viejo, conchuda")
     if "pelotudo" in text:
         return update.message.reply_text("Chupame bien los huevos")
+    if "estupido" in text:
+        return update.message.reply_text("Me dice estupido y no puede ni cargar un gasto en un excel")
+    if "forro" in text:
+        return update.message.reply_text("Taradita")
     try:
         partes = text.split()
         if len(partes) < 4:
