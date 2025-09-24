@@ -93,8 +93,16 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         monto_str = limpiar_monto(monto_str)
         monto = float(monto_str)
         division = monto / 2
+        # Buscar la primera fila vacía en las columnas A-E (mes actual)
+        values = worksheet.get_values('A3', 'E1000')
+        row_idx = 3
+        for fila in values:
+            if all(cell == '' for cell in fila):
+                break
+            row_idx += 1
+        # Escribir el gasto en la fila vacía
         try:
-            worksheet.append_row([persona, fecha, monto, division, descripcion])
+            worksheet.update(f'A{row_idx}:E{row_idx}', [[persona, fecha, monto, division, descripcion]])
         except Exception as error_gs:
             logging.error(f"Error escribiendo en Google Sheets: {error_gs}")
             return update.message.reply_text(f"Error escribiendo en Google Sheets: {error_gs}")
@@ -110,12 +118,13 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import calendar
-    # Leer todos los datos de la hoja
-    rows = worksheet.get_all_values()[1:]  # Salteamos encabezado
+    # Leer solo datos del mes actual (A3:E1000)
+    values = worksheet.get_values('A3', 'E1000')
+    rows = [fila for fila in values if any(cell != '' for cell in fila)]
     if not rows:
         return update.message.reply_text("No hay gastos registrados.")
 
-    # Filtrar solo los del mes actual
+    # Filtrar solo los del mes actual (por fecha)
     hoy = datetime.date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
@@ -125,21 +134,11 @@ def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
         try:
-            if "/" in fecha_str:
-                # Soporta formato dd/mm/yyyy o d/m/yyyy
-                partes = fecha_str.split("/")
-                dia = int(partes[0])
-                mes = int(partes[1])
-                if len(partes) > 2:
-                    anio = int(partes[2])
-                else:
-                    anio = anio_actual
-            else:
-                fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
-                mes = fecha.month
-                anio = fecha.year
+            fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            mes = fecha.month
+            anio = fecha.year
         except Exception:
-            continue  # Si no se puede parsear la fecha, la salteamos
+            continue
         if mes == mes_actual and anio == anio_actual:
             if 'seba' in persona:
                 gastos['seba'] += float(monto_str)
@@ -158,29 +157,23 @@ def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return update.message.reply_text(msg)
 
 def gastos_seba(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Leer solo datos del mes actual (A3:E1000)
+    values = worksheet.get_values('A3', 'E1000')
     hoy = datetime.date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
-    rows = worksheet.get_all_values()[1:]
     total = 0
     detalles = []
-    for fila in rows:
+    for fila in values:
+        if not any(cell != '' for cell in fila):
+            continue
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
         try:
-            if "/" in fecha_str:
-                partes = fecha_str.split("/")
-                dia = int(partes[0])
-                mes = int(partes[1])
-                if len(partes) > 2:
-                    anio = int(partes[2])
-                else:
-                    anio = anio_actual
-            else:
-                fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
-                mes = fecha.month
-                anio = fecha.year
+            fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            mes = fecha.month
+            anio = fecha.year
         except Exception:
             continue
         if mes == mes_actual and anio == anio_actual and 'seba' in persona:
@@ -194,29 +187,23 @@ def gastos_seba(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def gastos_vicky(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Leer solo datos del mes actual (A3:E1000)
+    values = worksheet.get_values('A3', 'E1000')
     hoy = datetime.date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
-    rows = worksheet.get_all_values()[1:]
     total = 0
     detalles = []
-    for fila in rows:
+    for fila in values:
+        if not any(cell != '' for cell in fila):
+            continue
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
         try:
-            if "/" in fecha_str:
-                partes = fecha_str.split("/")
-                dia = int(partes[0])
-                mes = int(partes[1])
-                if len(partes) > 2:
-                    anio = int(partes[2])
-                else:
-                    anio = anio_actual
-            else:
-                fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
-                mes = fecha.month
-                anio = fecha.year
+            fecha = datetime.datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            mes = fecha.month
+            anio = fecha.year
         except Exception:
             continue
         if mes == mes_actual and anio == anio_actual and 'vicky' in persona:
