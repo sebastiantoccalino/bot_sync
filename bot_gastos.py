@@ -94,7 +94,7 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         monto = float(monto_str)
         division = monto / 2
         # Buscar la primera fila vacía en las columnas A-E (mes actual)
-        values = worksheet.get_values('A3', 'E1000')
+        values = worksheet.get_values('A3:E1000')
         row_idx = 3
         for fila in values:
             if all(cell == '' for cell in fila):
@@ -119,7 +119,7 @@ def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import calendar
     # Leer solo datos del mes actual (A3:E1000)
-    values = worksheet.get_values('A3', 'E1000')
+    values = worksheet.get_values('A3:E1000')
     rows = [fila for fila in values if any(cell != '' for cell in fila)]
     if not rows:
         return update.message.reply_text("No hay gastos registrados.")
@@ -158,7 +158,7 @@ def resumen(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def gastos_seba(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Leer solo datos del mes actual (A3:E1000)
-    values = worksheet.get_values('A3', 'E1000')
+    values = worksheet.get_values('A3:E1000')
     hoy = datetime.date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
@@ -188,7 +188,7 @@ def gastos_seba(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def gastos_vicky(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Leer solo datos del mes actual (A3:E1000)
-    values = worksheet.get_values('A3', 'E1000')
+    values = worksheet.get_values('A3:E1000')
     hoy = datetime.date.today()
     mes_actual = hoy.month
     anio_actual = hoy.year
@@ -240,12 +240,14 @@ def cerrar_mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     worksheet.update('A3:E1000', empty_rows)
 
     # 5. Calcular resumen del mes cerrado (usando lógica de resumen)
-    rows = worksheet.get_all_values()[2:]  # Saltar fila 1 y 2
+    rows = worksheet.get_values('A3:E1000')  # Saltar fila 1 y 2
     hoy = datetime.now().date()
     mes = hoy.month
     anio = hoy.year
     gastos = {'seba': 0, 'vicky': 0}
     for fila in rows:
+        if not fila:
+            continue
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
@@ -282,9 +284,11 @@ def resumen_mes_anterior(context):
     else:
         mes = hoy.month - 1
         anio = hoy.year
-    rows = worksheet.get_all_values()[1:]
+    rows = worksheet.get_values('A3:E1000')
     gastos = {'seba': 0, 'vicky': 0}
     for fila in rows:
+        if not fila:
+            continue
         persona = fila[0].strip().lower()
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
