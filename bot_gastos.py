@@ -25,7 +25,9 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
 TOKEN = os.environ["TOKEN"]
+
 # --- Configuración de Google Sheets ---
 # Nombre exacto de tu hoja de cálculo (cambiá esto si tu sheet tiene otro nombre)
 SHEET_NAME = 'Gastos'
@@ -55,7 +57,13 @@ def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Nuevo formato flexible: persona [fecha|hoy|ayer] monto descripcion
-    text = update.message.text.strip()
+    text = update.message.text.strip().lower()
+    if "gracias" in text:
+        return update.message.reply_text("¡De nada Vicky! Para servirte siempre 😄\n Que tengas un excelente día ")
+    if "puto" in text:
+        return update.message.reply_text("Puto tu viejo, conchuda")
+    if "pelotudo" in text:
+        return update.message.reply_text("Chupame bien los huevos")
     try:
         partes = text.split()
         if len(partes) < 4:
@@ -220,6 +228,62 @@ def gastos_vicky(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = "No hay gastos de Vicky este mes."
     return update.message.reply_text(msg)
 
+def cerrar_mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    import calendar
+    from datetime import datetime
+    # Obtener el mes y año actual para el nuevo encabezado
+    now = datetime.now()
+    nombre_mes = calendar.month_name[now.month]
+    anio = now.year
+    mes_actual = f"{nombre_mes} {anio}"
+
+    # 1. Insertar 5 columnas a la izquierda
+    worksheet.insert_cols([[], [], [], [], []], 1)
+
+    # 2. Fusionar celdas A1:E1 y escribir el nombre del mes
+    worksheet.merge_cells(1, 1, 1, 5)
+    worksheet.update_cell(1, 1, mes_actual)
+
+    # 3. Escribir encabezados en fila 2 (A2:E2)
+    headers = ["persona", "fecha", "monto", "division", "descripcion"]
+    worksheet.update('A2:E2', [headers])
+
+    # 4. Limpiar filas de datos en las nuevas columnas (A3:E1000)
+    empty_rows = [["" for _ in range(5)] for _ in range(997)]
+    worksheet.update('A3:E1000', empty_rows)
+
+    # 5. Calcular resumen del mes cerrado (usando lógica de resumen)
+    rows = worksheet.get_all_values()[2:]  # Saltar fila 1 y 2
+    hoy = datetime.now().date()
+    mes = hoy.month
+    anio = hoy.year
+    gastos = {'seba': 0, 'vicky': 0}
+    for fila in rows:
+        persona = fila[0].strip().lower()
+        fecha_str = fila[1].strip()
+        monto_str = limpiar_monto(fila[2])
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        except Exception:
+            continue
+        if fecha.month == mes and fecha.year == anio:
+            if 'seba' in persona:
+                gastos['seba'] += float(monto_str)
+            elif 'vicky' in persona:
+                gastos['vicky'] += float(monto_str)
+    s = gastos['seba']
+    v = gastos['vicky']
+    if s > v:
+        pago = f"Vicky le pagó a Seba: ${round((s-v)/2,2)}"
+    elif v > s:
+        pago = f"Seba le pagó a Vicky: ${round((v-s)/2,2)}"
+    else:
+        pago = "No había deuda pendiente."
+
+    # 6. Enviar mensaje de cierre
+    msg = f"Mes cerrado CRACK! Se inició el listado para {mes_actual}.\n{pago}"
+    update.message.reply_text(msg)
+
 def resumen_mes_anterior(context):
     # Calcula el resumen del mes anterior y lo envía por chat privado
     app = context.bot
@@ -284,6 +348,7 @@ def main():
     app.add_handler(CommandHandler("resumen", resumen))
     app.add_handler(CommandHandler("gastos_seba", gastos_seba))
     app.add_handler(CommandHandler("gastos_vicky", gastos_vicky))
+    app.add_handler(CommandHandler("cerrar_mes", cerrar_mes))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     app.run_polling()
