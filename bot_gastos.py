@@ -288,14 +288,13 @@ async def cerrar_mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         fecha_str = fila[1].strip()
         monto_str = limpiar_monto(fila[2])
         try:
-            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            float(monto_str)
         except Exception:
             continue
-        if fecha.month == now.month and fecha.year == now.year:
-            if 'seba' in persona:
-                gastos['seba'] += float(monto_str)
-            elif 'vicky' in persona:
-                gastos['vicky'] += float(monto_str)
+        if 'seba' in persona:
+            gastos['seba'] += float(monto_str)
+        elif 'vicky' in persona:
+            gastos['vicky'] += float(monto_str)
     s = gastos['seba']
     v = gastos['vicky']
     if s > v:
