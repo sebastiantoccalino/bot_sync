@@ -282,7 +282,7 @@ async def cerrar_mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Leer conclusión desde 'Copia de SYNC' H6 ANTES de modificar la hoja
     ws_copia = sh.worksheet('Copia de SYNC')
     conclusion_raw = ws_copia.acell('H6').value or "No había deuda pendiente."
-    conclusion = re.sub(r'(\d+\.\d+)', lambda m: str(round(float(m.group(1)), 2)), conclusion_raw)
+    conclusion = re.sub(r'(\d+,\d{2})\d*', r'\1', conclusion_raw)
 
     worksheet.insert_cols([[], [], [], [], []], 1)
     worksheet.merge_cells(1, 1, 1, 5)
