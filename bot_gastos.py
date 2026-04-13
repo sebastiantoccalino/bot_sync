@@ -274,35 +274,15 @@ async def cerrar_mes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import calendar
     from datetime import datetime
     now = datetime.now()
-    nombre_mes = calendar.month_name[now.month]
-    anio = now.year
+    proximo = sumar_meses(now.date(), 1)
+    nombre_mes = calendar.month_name[proximo.month]
+    anio = proximo.year
     mes_actual = f"{nombre_mes} {anio}"
 
-    # Leer y calcular conclusión ANTES de modificar la hoja
-    rows = worksheet.get_values('A3:E1000')
-    gastos = {'seba': 0, 'vicky': 0}
-    for fila in rows:
-        if not any(cell != '' for cell in fila):
-            continue
-        persona = fila[0].strip().lower()
-        fecha_str = fila[1].strip()
-        monto_str = limpiar_monto(fila[2])
-        try:
-            float(monto_str)
-        except Exception:
-            continue
-        if 'seba' in persona:
-            gastos['seba'] += float(monto_str)
-        elif 'vicky' in persona:
-            gastos['vicky'] += float(monto_str)
-    s = gastos['seba']
-    v = gastos['vicky']
-    if s > v:
-        conclusion = f"Vicky le debe a Seba: ${round((s - v) / 2, 2)}"
-    elif v > s:
-        conclusion = f"Seba le debe a Vicky: ${round((v - s) / 2, 2)}"
-    else:
-        conclusion = "No había deuda pendiente."
+    # Leer conclusión desde 'Copia de SYNC' H6 ANTES de modificar la hoja
+    ws_copia = sh.worksheet('Copia de SYNC')
+    conclusion_raw = ws_copia.acell('H6').value or "No había deuda pendiente."
+    conclusion = re.sub(r'(\d+\.\d+)', lambda m: str(round(float(m.group(1)), 2)), conclusion_raw)
 
     worksheet.insert_cols([[], [], [], [], []], 1)
     worksheet.merge_cells(1, 1, 1, 5)
